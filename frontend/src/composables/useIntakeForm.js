@@ -1,10 +1,12 @@
-import { reactive, computed, ref } from 'vue'
+import { reactive, computed } from 'vue'
 import { submitInquiry } from '../services/api.js'
 
 const PAGES = ['cover', 'welcome', 'contact', 'vision', 'review', 'confirmation']
 
+// Singleton state — shared across all component calls
 const state = reactive({
   currentPage: 'cover',
+  direction: 'forward', // 'forward' | 'back' | 'book-open'
   formData: {
     fullName: '',
     email: '',
@@ -16,7 +18,6 @@ const state = reactive({
   errors: {},
   isSubmitting: false,
   submitError: '',
-  direction: 'forward', // 'forward' | 'back'
 })
 
 function countSentences(text) {
@@ -29,29 +30,24 @@ function countSentences(text) {
 function validateContact() {
   const errors = {}
   const { fullName, email } = state.formData
-
   if (!fullName || fullName.trim().length < 2) {
     errors.fullName = 'Please enter your name (at least 2 characters).'
   }
-
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!email || !emailRegex.test(email.trim())) {
     errors.email = 'Please enter a valid email address.'
   }
-
   return errors
 }
 
 function validateVision() {
   const errors = {}
   const { vision } = state.formData
-
   if (!vision || vision.trim().length === 0) {
     errors.vision = 'Please share your vision with us.'
   } else if (countSentences(vision) < 3) {
-    errors.vision = 'We\'d love to hear a bit more — please write at least 3 sentences.'
+    errors.vision = "We'd love to hear a bit more — please write at least 3 sentences."
   }
-
   return errors
 }
 
@@ -63,12 +59,11 @@ export function useIntakeForm() {
   const submitError = computed(() => state.submitError)
   const direction = computed(() => state.direction)
 
-  const currentPageIndex = computed(() => PAGES.indexOf(state.currentPage))
-  const totalFormPages = 4 // welcome, contact, vision, review
   const formPageIndex = computed(() => {
     const map = { welcome: 0, contact: 1, vision: 2, review: 3 }
     return map[state.currentPage] ?? -1
   })
+  const totalFormPages = 4
 
   function goTo(page) {
     const fromIndex = PAGES.indexOf(state.currentPage)
@@ -79,31 +74,38 @@ export function useIntakeForm() {
     state.currentPage = page
   }
 
+  function beginStory() {
+    state.direction = 'book-open'
+    state.errors = {}
+    state.submitError = ''
+    state.currentPage = 'welcome'
+  }
+
   function next() {
     const idx = PAGES.indexOf(state.currentPage)
     if (state.currentPage === 'contact') {
       const errs = validateContact()
-      if (Object.keys(errs).length) {
-        state.errors = errs
-        return
-      }
+      if (Object.keys(errs).length) { state.errors = errs; return }
     }
     if (state.currentPage === 'vision') {
       const errs = validateVision()
-      if (Object.keys(errs).length) {
-        state.errors = errs
-        return
-      }
+      if (Object.keys(errs).length) { state.errors = errs; return }
     }
     if (idx < PAGES.length - 1) {
-      goTo(PAGES[idx + 1])
+      state.direction = 'forward'
+      state.errors = {}
+      state.submitError = ''
+      state.currentPage = PAGES[idx + 1]
     }
   }
 
   function back() {
     const idx = PAGES.indexOf(state.currentPage)
     if (idx > 0) {
-      goTo(PAGES[idx - 1])
+      state.direction = 'back'
+      state.errors = {}
+      state.submitError = ''
+      state.currentPage = PAGES[idx - 1]
     }
   }
 
@@ -112,7 +114,9 @@ export function useIntakeForm() {
     state.submitError = ''
     try {
       await submitInquiry(state.formData)
-      goTo('confirmation')
+      state.direction = 'forward'
+      state.errors = {}
+      state.currentPage = 'confirmation'
     } catch (err) {
       state.submitError = err.message || 'Something went wrong. Please try again.'
     } finally {
@@ -122,18 +126,16 @@ export function useIntakeForm() {
 
   function reset() {
     state.currentPage = 'cover'
-    state.formData = {
-      fullName: '',
-      email: '',
-      phone: '',
-      company: '',
-      vision: '',
-      ndaRequested: false,
-    }
+    state.direction = 'back'
+    state.formData.fullName = ''
+    state.formData.email = ''
+    state.formData.phone = ''
+    state.formData.company = ''
+    state.formData.vision = ''
+    state.formData.ndaRequested = false
     state.errors = {}
     state.submitError = ''
     state.isSubmitting = false
-    state.direction = 'forward'
   }
 
   function updateField(field, value) {
@@ -152,9 +154,10 @@ export function useIntakeForm() {
     isSubmitting,
     submitError,
     direction,
-    currentPageIndex,
-    totalFormPages,
     formPageIndex,
+    totalFormPages,
+    countSentences,
+    beginStory,
     goTo,
     next,
     back,

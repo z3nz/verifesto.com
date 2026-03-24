@@ -1,24 +1,21 @@
 <script setup>
 import { useIntakeForm } from '../composables/useIntakeForm.js'
-
 const { formData, errors, next, updateField } = useIntakeForm()
-
-function handleNext() {
-  next()
-}
 </script>
 
 <template>
   <div class="page-content">
     <div class="animate-fade-in-up">
-      <h2 class="font-display text-3xl md:text-4xl font-semibold text-ink mb-2">
+      <span class="chapter-label">Chapter Two</span>
+
+      <h2 class="font-display text-3xl md:text-4xl font-light text-ink tracking-tight mb-2">
         Let's get to know each other.
       </h2>
-      <p class="text-ink-muted text-base md:text-lg mb-10">
-        We just need a few details to get started.
+      <p class="font-body text-base text-ink-muted mb-10 leading-relaxed">
+        Just a few details — no forms feel, promise.
       </p>
 
-      <form @submit.prevent="handleNext" class="space-y-6 max-w-lg">
+      <form @submit.prevent="next()" novalidate class="space-y-6 max-w-lg">
         <!-- Full Name -->
         <div class="form-group">
           <label for="fullName" class="form-label">Full Name</label>
@@ -27,12 +24,12 @@ function handleNext() {
             type="text"
             :value="formData.fullName"
             @input="updateField('fullName', $event.target.value)"
-            placeholder="First and Last Name"
+            placeholder="Your first and last name"
             autocomplete="name"
             class="form-input"
             :class="{ 'form-input-error': errors.fullName }"
           />
-          <p v-if="errors.fullName" class="form-error">{{ errors.fullName }}</p>
+          <p v-if="errors.fullName" class="form-error" role="alert">{{ errors.fullName }}</p>
         </div>
 
         <!-- Email -->
@@ -48,12 +45,15 @@ function handleNext() {
             class="form-input"
             :class="{ 'form-input-error': errors.email }"
           />
-          <p v-if="errors.email" class="form-error">{{ errors.email }}</p>
+          <p v-if="errors.email" class="form-error" role="alert">{{ errors.email }}</p>
         </div>
 
-        <!-- Phone -->
+        <!-- Phone (optional) -->
         <div class="form-group">
-          <label for="phone" class="form-label">Phone <span class="text-ink-muted font-normal">(optional)</span></label>
+          <label for="phone" class="form-label">
+            Phone
+            <span class="font-normal text-ink-muted ml-1">(optional)</span>
+          </label>
           <input
             id="phone"
             type="tel"
@@ -65,10 +65,11 @@ function handleNext() {
           />
         </div>
 
-        <!-- Company -->
+        <!-- Company (optional) -->
         <div class="form-group">
           <label for="company" class="form-label">
-            Company or Organization <span class="text-ink-muted font-normal">(if applicable)</span>
+            Company or Organization
+            <span class="font-normal text-ink-muted ml-1">(if applicable)</span>
           </label>
           <input
             id="company"
@@ -81,12 +82,14 @@ function handleNext() {
           />
         </div>
 
-        <button type="submit" class="btn-primary w-full mt-8">
-          Continue
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
-        </button>
+        <div class="pt-4">
+          <button type="submit" class="btn-primary w-full">
+            Next chapter
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M3.75 9H14.25M14.25 9L9.75 4.5M14.25 9L9.75 13.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
       </form>
     </div>
   </div>
