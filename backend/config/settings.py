@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'anymail',
     'intake',
 ]
 
@@ -91,6 +92,13 @@ CORS_ALLOWED_ORIGINS = os.environ.get(
     'http://localhost:5173,http://127.0.0.1:5173'
 ).split(',')
 CORS_ALLOW_CREDENTIALS = True
+
+# Email
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+ANYMAIL = {
+    "RESEND_API_KEY": os.environ.get("RESEND_API_KEY"),
+}
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "Verifesto Studios <hello@verifesto.com>")
 
 # DRF
 REST_FRAMEWORK = {
